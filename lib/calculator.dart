@@ -12,15 +12,17 @@ class Calculator extends StatelessWidget {
   String result = "";
   var showText = "0".obs;
   RxString history = "".obs;
+
   void OnbtnClick(String text) {
     if (text == "=") {
-      // Check if there is a first number, second number, and operation do login operation
+      // Check if there is a first number, second number, and operation
       if (firstNumber.isNotEmpty &&
           secondNumber.isNotEmpty &&
           operation.isNotEmpty) {
         try {
-          double firstNum = double.parse(firstNumber);
-          double secondNum = double.parse(secondNumber);
+          num firstNum = int.tryParse(firstNumber) ?? double.parse(firstNumber);
+          num secondNum =
+              int.tryParse(secondNumber) ?? double.parse(secondNumber);
           switch (operation) {
             case "+":
               result = (firstNum + secondNum).toString();
@@ -35,16 +37,18 @@ class Calculator extends StatelessWidget {
               if (secondNum == 0) {
                 result = "Error: Division by zero";
               } else {
-                try {
-                  result = (firstNum / secondNum).toString();
-                } catch (e) {
-                  result = "error $e";
-                }
+                result = (firstNum / secondNum).toString();
               }
               break;
           }
-          history.value = "$firstNumber $operation $secondNumber";
+
+          // Remove ".0" from the result if it exists
+          List<String> parts = result.split('.');
+          if (parts.length == 2 && parts[1] == "0") {
+            result = parts[0]; // Remove the decimal part
+          }
           showText.value = result;
+          history.value = "$firstNumber $operation $secondNumber";
         } catch (e) {
           showText.value = "Error: Invalid input";
         }
@@ -57,38 +61,28 @@ class Calculator extends StatelessWidget {
       result = "";
       operation = "";
       history.value = "";
-      //if button clicked in % divide first number or second number from 100
     } else if (text == "%" && firstNumber.isNotEmpty) {
-      //if there is just first number
+      // Handle percentage logic
       if (firstNumber.isNotEmpty && secondNumber.isEmpty) {
         double firstNum = double.parse(firstNumber);
         firstNumber = (firstNum / 100).toString();
         showText.value = firstNumber;
-        //if there is second number
       } else if (firstNumber.isNotEmpty && secondNumber.isNotEmpty) {
         double secondNum = double.parse(secondNumber);
         secondNumber = (secondNum / 100).toString();
         showText.value = "$firstNumber $operation $secondNumber";
-        //if we have operation don't do any thing
-      } else {
-        return;
       }
     } else if (text == "<") {
       // Remove the last character
       if (showText.value.length == 1) {
         showText.value = "0";
       } else {
-        //remove last character from first number
-        if (firstNumber.isNotEmpty && operation.isEmpty) {
+        if (operation.isEmpty) {
           firstNumber = firstNumber.substring(0, firstNumber.length - 1);
           showText.value = firstNumber;
-          // remove operation
-        } else if (firstNumber.isNotEmpty &&
-            operation.isNotEmpty &&
-            secondNumber.isEmpty) {
+        } else if (secondNumber.isEmpty) {
           operation = "";
           showText.value = "$firstNumber $operation";
-          //remove last character from second number
         } else {
           secondNumber = secondNumber.substring(0, secondNumber.length - 1);
           showText.value = "$firstNumber $operation $secondNumber";
@@ -96,57 +90,51 @@ class Calculator extends StatelessWidget {
       }
     } else if (operations.contains(text)) {
       // If an operation is pressed
-      //if there is just first number
       if (firstNumber.isNotEmpty && secondNumber.isEmpty) {
         operation = text;
         showText.value = "$firstNumber $operation";
-        //if there is first number and second number d operation
-      } else {
-        //if there is first number and second number do logic operation
-        double firstNum = double.parse(firstNumber);
-        double secondNum = double.parse(secondNumber);
+      } else if (firstNumber.isNotEmpty && secondNumber.isNotEmpty) {
+        // Perform the previous operation and update the first number
+        num firstNum = int.tryParse(firstNumber) ?? double.parse(firstNumber);
+        num secondNum =
+            int.tryParse(secondNumber) ?? double.parse(secondNumber);
         switch (operation) {
           case "+":
             result = (firstNum + secondNum).toString();
-            history.value = "$firstNum + $secondNum";
             break;
           case "-":
             result = (firstNum - secondNum).toString();
-            history.value = "$firstNum - $secondNum";
             break;
           case "X":
             result = (firstNum * secondNum).toString();
-            history.value = "$firstNum * $secondNum";
             break;
           case "÷":
             if (secondNum == 0) {
               result = "Error: Division by zero";
             } else {
-              try {
-                result = (firstNum / secondNum).toString();
-              } catch (e) {
-                result = "error $e";
-              }
+              result = (firstNum / secondNum).toString();
             }
-            history.value = "$firstNum / $secondNum";
             break;
         }
+
+        // Remove ".0" from the result if it exists
+        List<String> parts = result.split('.');
+        if (parts.length == 2 && parts[1] == "0") {
+          result = parts[0]; // Remove the decimal part
+        }
+        history.value = "$firstNumber $operation $secondNumber";
+        firstNumber = result;
+        secondNumber = "";
         operation = text;
-        showText.value = "$result $text";
+        showText.value = "$firstNumber $operation";
+        
       }
     } else {
-      // If a number or dot is pressed
+      // If a number or decimal is pressed
       if (text.isNumericOnly || text == ".") {
-        //if operation is empty assign value to it
         if (operation.isEmpty) {
           firstNumber += text;
           showText.value = firstNumber;
-          //if there is result and operation assign result value to first number and text input to second number
-        } else if (result.isNotEmpty && operation.isNotEmpty) {
-          firstNumber = result;
-          secondNumber = text;
-          showText.value = '$firstNumber $operation $secondNumber';
-          //if there is second number
         } else {
           secondNumber += text;
           showText.value = secondNumber;
@@ -205,7 +193,6 @@ class Calculator extends StatelessWidget {
           style: TextStyle(color: Colors.black),
         ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: () {}),
       body: Column(
         children: [
           Expanded(
@@ -261,8 +248,7 @@ class Calculator extends StatelessWidget {
             width: 500,
             decoration: BoxDecoration(
                 color: Colors.white,
-                border: const Border(top: BorderSide(color: Colors.black12)),
-                borderRadius: BorderRadius.circular(20)),
+                border: const Border(top: BorderSide(color: Colors.black12))),
             child: Padding(
               padding: const EdgeInsets.all(5.0),
               child: Column(
