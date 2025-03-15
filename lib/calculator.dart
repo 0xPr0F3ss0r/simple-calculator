@@ -35,7 +35,7 @@ class Calculator extends StatelessWidget {
               break;
             case "÷":
               if (secondNum == 0) {
-                result = "Error: Division by zero";
+                result = "Error";
               } else {
                 result = (firstNum / secondNum).toString();
               }
