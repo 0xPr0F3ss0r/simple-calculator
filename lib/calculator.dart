@@ -45,7 +45,7 @@ class Calculator extends StatelessWidget {
           // Remove ".0" from the result if it exists
           List<String> parts = result.split('.');
           if (parts.length == 2 && parts[1] == "0") {
-            result = parts[0]; // Remove the decimal part
+            result = parts[0];
           }
           showText.value = result;
           history.value = "$firstNumber $operation $secondNumber";
@@ -120,7 +120,7 @@ class Calculator extends StatelessWidget {
         // Remove ".0" from the result if it exists
         List<String> parts = result.split('.');
         if (parts.length == 2 && parts[1] == "0") {
-          result = parts[0]; // Remove the decimal part
+          result = parts[0];
         }
         history.value = "$firstNumber $operation $secondNumber";
         firstNumber = result;
